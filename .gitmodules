@@ -1,0 +1,18 @@
+[submodule "mods/NPCs-Names-Distributor-NG"]
+	path = mods/NPCs-Names-Distributor-NG
+	url = https://github.com/FlayaN/NPCs-Names-Distributor-NG.git
+[submodule "mods/skyrim-hair-colour-sync-NG"]
+	path = mods/skyrim-hair-colour-sync-NG
+	url = https://github.com/FlayaN/skyrim-hair-colour-sync-NG.git
+[submodule "mods/hdtSMP-force-fields-NG"]
+	path = mods/hdtSMP-force-fields-NG
+	url = https://github.com/FlayaN/hdtSMP-force-fields-NG.git
+[submodule "mods/PapyrusUtil-NG"]
+	path = mods/PapyrusUtil-NG
+	url = https://github.com/FlayaN/PapyrusUtil-NG.git
+[submodule "mods/subtitles-NG"]
+	path = mods/subtitles-NG
+	url = https://github.com/FlayaN/subtitles-NG.git
+[submodule "mods/JourneymanFastTravel-NG"]
+	path = mods/JourneymanFastTravel-NG
+	url = https://github.com/FlayaN/JourneymanFastTravel-NG.git
