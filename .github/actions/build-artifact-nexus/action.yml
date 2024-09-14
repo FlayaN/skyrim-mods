@@ -1,0 +1,85 @@
+name: Build artifact and release it to nexus
+
+inputs:
+  configurePreset:
+    description: "Name of cmake configure preset"
+    required: true
+  buildPreset:
+    description: "Name of cmake build preset"
+    required: true
+  PAT:
+    description: "Github PAT with access to FlayaN/skyrim-mods"
+    required: true
+  modName:
+    description: "Name of the mod"
+    required: true
+  GITHUB_TOKEN:
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Get CMake
+      uses: lukka/get-cmake@latest
+
+    - name: Setup vcpkg
+      uses: lukka/run-vcpkg@v11.5
+      with:
+        vcpkgJsonGlob: vcpkg.json
+
+    - name: Run CMake
+      uses: lukka/run-cmake@v10.7
+      with:
+        configurePreset: ${{ inputs.configurePreset }}
+        buildPreset: ${{ inputs.buildPreset }}
+
+    - name: Copy dll and pdb to dist/SKSE/Plugins
+      shell: bash
+      run: |
+        mkdir dist dist/SKSE dist/SKSE/Plugins
+        cp $(find build/Release -name "*.dll" -o -name "*.pdb") dist/SKSE/Plugins
+
+    - name: Semantic Release
+      uses: cycjimmy/semantic-release-action@v4
+      id: semantic # Need an `id` for output variables
+      with:
+        # You can specify specifying version range for the extra plugins if you prefer.
+        extra_plugins: |
+          @semantic-release/changelog
+          @semantic-release/git
+        branches: |
+          [
+            "main"
+          ]
+      env:
+          GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+
+    - name: semantic release delay
+      # add delay so upload does not kill the release notes from semantic-release
+      if: steps.semantic.outputs.new_release_published == 'true'
+      shell: bash
+      run: |
+        sleep 5
+
+    - name: Create .7z
+      if: steps.semantic.outputs.new_release_published == 'true'
+      shell: bash
+      run: 7z a -t7z -mx=9 ${{ inputs.modName }}-${{ steps.semantic.outputs.new_release_version }}.7z ./dist/*
+
+    - name: Upload zip to release
+      if: steps.semantic.outputs.new_release_published == 'true'
+      uses: svenstaro/upload-release-action@v2
+      with:
+        file: ${{ inputs.modName }}-${{ steps.semantic.outputs.new_release_version }}.7z
+        asset_name: ${{ inputs.modName }}-${{ steps.semantic.outputs.new_release_version }}.7z
+        tag: ${{ steps.semantic.outputs.new_release_git_tag }}
+        overwrite: true
+
+    - name: Release to nexus
+      if: steps.semantic.outputs.new_release_published == 'true'
+      uses: peter-evans/repository-dispatch@v3
+      with:
+        token: ${{ inputs.PAT }}
+        repository: FlayaN/skyrim-mods
+        event-type: release-mod
+        client-payload: '{"version": "${{ steps.semantic.outputs.new_release_version }}", "sha": "${{ github.sha }}"}'

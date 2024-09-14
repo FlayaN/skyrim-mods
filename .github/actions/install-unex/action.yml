@@ -1,0 +1,18 @@
+name: Install dotnet tool unex
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup .NET 8
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.x.x
+
+    - name: Install BUTR.NexusUploader
+      run: dotnet tool install -g BUTR.NexusUploader
+      shell: bash
+
+    - name: Fix act dotnet path
+      if: ${{ env.ACT }}
+      run: echo "::set-env name=PATH::${PATH}:${HOME}/.dotnet/tools"
+      shell: bash

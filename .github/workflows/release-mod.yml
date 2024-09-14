@@ -1,0 +1,21 @@
+name: Release mod to nexusmods
+
+on:
+  repository_dispatch:
+    types: [release-mod]
+
+jobs:
+  nexus-release:
+    runs-on: ubuntu-latest
+    steps:
+        - uses: actions/checkout@v4
+          with:
+            sparse-checkout: .github
+
+        - run: echo ${{ github.event.client_payload.sha }}
+          shell: bash
+
+        - run: echo ${{ github.event.client_payload.version }}
+          shell: bash
+
+        - uses: ./.github/actions/install-unex
